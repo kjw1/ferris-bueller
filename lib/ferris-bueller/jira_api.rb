@@ -14,7 +14,7 @@ module FerrisBueller
       @api_url   = options.fetch :api_url
       @base_path = options.fetch :base_path, '/rest/api/2'
       @logger    = options.fetch :logger, Slog.new
-      log.trace event: 'Jira API client initialized'
+      log.debug event: 'Jira API client initialized'
     end
 
     def send path, data={}
@@ -26,7 +26,7 @@ module FerrisBueller
       req['Content-Type'] = 'application/json'
       req['Accept'] = 'application/json'
       req.body = JSON.generate data
-      log.trace \
+      log.debug \
         event: 'sending Jira API request',
         path: path,
         data: data

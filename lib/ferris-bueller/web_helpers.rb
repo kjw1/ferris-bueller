@@ -56,7 +56,7 @@ module FerrisBueller
         event: 'exception',
         exception: e.inspect,
         class: e.class,
-        message: e.message,
+        message: e.message.inspect,
         backtrace: e.backtrace
       return nil
     end

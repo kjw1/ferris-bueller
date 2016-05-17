@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.summary     = FerrisBueller::SUMMARY
   s.description = FerrisBueller::SUMMARY + '.'
 
-  s.add_runtime_dependency 'slog', '~> 1'
+  s.add_runtime_dependency 'slog', '~> 2'
   s.add_runtime_dependency 'thor', '~> 0.19'
   s.add_runtime_dependency 'queryparams', '~> 0.0.3'
   s.add_runtime_dependency 'fuzzy-string-match', '~> 0.9.7'

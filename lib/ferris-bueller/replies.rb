@@ -172,7 +172,7 @@ module FerrisBueller
       status = normalize_value i[:fields][:status]
       return false if status =~ RESOLVED_STATE
 
-      log.trace \
+      log.debug \
         event: 'resolving incident',
         incident: i
 
@@ -201,7 +201,7 @@ module FerrisBueller
       status = normalize_value i[:fields][:status]
       return false if status =~ CLOSED_STATE
 
-      log.trace \
+      log.debug \
         event: 'closing incident',
         incident: i
 

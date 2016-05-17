@@ -100,9 +100,8 @@ module FerrisBueller
       log.error \
         error: 'could not refresh users',
         event: 'exception',
-        exception: e.inspect,
         class: e.class,
-        message: e.message,
+        message: e.message.inspect,
         backtrace: e.backtrace,
         remediation: 'pausing breifly before retrying'
       sleep RETRY_DELAY
@@ -117,14 +116,12 @@ module FerrisBueller
 
       user_names = data[:users][:items].map { |u| u[:name] }
       store[:jira_members] = user_names
-
     rescue StandardError => e
       log.error \
         error: 'could not refresh members',
         event: 'exception',
-        exception: e.inspect,
         class: e.class,
-        message: e.message,
+        message: e.message.inspect,
         backtrace: e.backtrace,
         remediation: 'pausing breifly before retrying'
       sleep RETRY_DELAY
@@ -142,14 +139,12 @@ module FerrisBueller
       store[:jira_incidents] = data[:issues].map do |i|
         i[:num] = i[:key].split('-', 2).last ; i
       end
-
     rescue StandardError => e
       log.error \
         error: 'could not refresh incidents',
         event: 'exception',
-        exception: e.inspect,
         class: e.class,
-        message: e.message,
+        message: e.message.inspect,
         backtrace: e.backtrace,
         remediation: 'pausing breifly before retrying'
       sleep RETRY_DELAY
@@ -159,7 +154,7 @@ module FerrisBueller
 
     def jira_request path, params
       api_url = File.join options.jira_url, 'rest/api/latest', path
-      log.trace \
+      log.debug \
         event: 'jira request',
         path: path,
         params: params,
