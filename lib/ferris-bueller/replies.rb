@@ -34,7 +34,7 @@ module FerrisBueller
 
 
     def reply_help params
-      { text: "Help!" }
+      { text: HELP_TEXT }
     end
 
 
@@ -49,7 +49,7 @@ module FerrisBueller
       return { text: 'No open incidents at the moment' } if incidents.empty?
 
       attachments = incidents.map do |i|
-        attach_incident(incident)
+        attach_incident(i)
       end
       {
         text: 'Found %d open incidents' % attachments.size,
@@ -78,6 +78,7 @@ module FerrisBueller
       return { text: 'Could not list incidents' } unless incident
 
       {
+        text: 'Incident info',
         attachments: [
           attach_incident(incident)
         ]
@@ -86,56 +87,65 @@ module FerrisBueller
 
 
     def reply_resolve inc_num, params
-      return { text: "You're not allowed to do that" } unless allowed? params
+      post_lambda = lambda do
+        return { text: "You're not allowed to do that" }, params[:response_url]  unless allowed? params
 
-      incident = select_incident inc_num
-      return { text: 'Could not list incidents' } unless incident
+        incident = select_incident inc_num
+        return { text: 'Could not list incidents' }, params[:response_url]  unless incident
 
-      resolution = resolve_incident incident
-      return { text: 'Could not resolve incident' } if resolution.nil?
-      return { text: 'Already resolved' } if resolution == false
+        resolution = resolve_incident incident
+        return { text: 'Could not resolve incident' }, params[:response_url]  if resolution.nil?
+        return { text: 'Already resolved' } if resolution == false
 
-      {
-        text: 'Resolved incident',
-        attachments: [
-          attach_incident(incident)
-        ]
-      }
+        return {
+          text: 'Resolved incident',
+          attachments: [
+            attach_incident(incident)
+          ]
+        }, params[:response_url]
+      end
+      return { response_type: 'in_channel' }, post_lambda
     end
 
 
     def reply_close inc_num, params
-      return { text: "You're not allowed to do that" } unless allowed? params
+      post_lambda = lambda do
+	return { text: "You're not allowed to do that" }, params[:response_url] unless allowed? params
 
-      incident = select_incident inc_num
-      return { text: 'Could not list incidents' } unless incident
+	incident = select_incident inc_num
+	return { text: 'Could not list incidents' }, params[:response_url] unless incident
 
-      resolution = close_incident incident
-      return { text: 'Could not close incident' } unless resolution
+	resolution = close_incident incident
+	return { text: 'Could not close incident' }, params[:response_url] unless resolution
 
-      {
-        text: 'Closed incident',
-        attachments: [
-          attach_incident(incident)
-        ]
-      }
+	return {
+	  text: 'Closed incident',
+          attachments: [
+            attach_incident(incident)
+          ]
+        }, params[:response_url]
+      end
+      return { response_type: 'in_channel' }, post_lambda
     end
 
 
     def reply_open sev_num, summary, params
-      return { text: "You're not allowed to do that" } unless allowed? params
+      post_lambda = lambda do
+        return { text: "You're not allowed to do that" }, params[:response_url] unless allowed? params
 
-      new_incident = construct_incident sev_num, summary, params
-      incident = open_incident new_incident, summary
-      return { text: 'Could not open incident' } unless incident
+        new_incident = construct_incident sev_num, summary, params
+        incident = open_incident new_incident, summary
+        return { text: 'Could not open incident' }, params[:response_url] unless incident
 
-      incident = new_incident.merge incident
-      {
-        text: 'Opened incident',
-        attachments: [
-          attach_incident(incident)
-        ]
-      }
+        incident = new_incident.merge incident
+        return {
+          text: 'Opened incident',
+          attachments: [
+            attach_incident(incident)
+          ]
+        }, params[:response_url]
+      end
+      return { response_type: 'in_channel' }, post_lambda
     end
 
 
@@ -333,6 +343,7 @@ module FerrisBueller
       u = user_lookup params
       u && store[:jira_members] \
         && store[:jira_members].include?(u[:jira][:nick])
+
     end
 
 

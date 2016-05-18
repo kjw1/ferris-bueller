@@ -18,7 +18,7 @@ module FerrisBueller
     def store ; @store end
 
 
-    def start_your_day_off
+    def start_your_day_off queue
       Web.set :environment, options.environment
       Web.set :port, options.port
       Web.set :bind, options.bind
@@ -35,6 +35,7 @@ module FerrisBueller
       Web.set :jira_project, options.jira_project
       Web.set :jira_type, options.jira_type
       Web.set :refresh_rate, options.incident_refresh
+      Web.set :post_queue, queue
 
       if log.level >= ::Logger::DEBUG
         Web.set :raise_errors, true
@@ -48,6 +49,27 @@ module FerrisBueller
       Web.run!
     end
 
+    def go_handle_postbacks queue
+      Thread.new do
+        loop do
+          post_lambda = queue.pop
+          response, uri_string = post_lambda.call
+          
+          uri = URI uri_string
+          log.debug \
+            event: 'sending Slack response',
+            path: uri_string,
+            data: response
+          Net::HTTP.start(uri.hostname, uri.port, :use_ssl => uri.scheme == 'https') do |http|
+            req = Net::HTTP::Post.new uri
+            req['Content-Type'] = 'application/json'
+            req['Accept'] = 'application/json'
+            req.body = JSON.generate response
+            http.request req
+          end
+        end
+      end
+    end
 
     def go_refresh_jira_users
       Thread.new do
@@ -110,11 +132,29 @@ module FerrisBueller
 
 
     def refresh_jira_members
-      data = jira_request 'group', \
-        groupname: options.jira_group,
-        expand: 'users'
+      req_path = 'rest/api/2/group/member'
+      is_last, values, start = false, [], 0
+      until is_last
+        req_params = QueryParams.encode \
+          groupname: options.jira_group,
+          startAt: start
 
-      user_names = data[:users][:items].map { |u| u[:name] }
+        uri = URI(options.jira_url + req_path + '?' + req_params)
+        http = Net::HTTP.new uri.hostname, uri.port
+
+        req = Net::HTTP::Get.new uri
+        req.basic_auth options.jira_user, options.jira_pass
+        req['Content-Type'] = 'application/json'
+        req['Accept'] = 'application/json'
+
+        resp    = http.request req
+        data    = JSON.parse resp.body
+        values += data['values']
+        is_last = data['isLast']
+        start  += data['maxResults']
+      end
+
+      user_names = values.map { |u| u['name'] }
       store[:jira_members] = user_names
     rescue StandardError => e
       log.error \

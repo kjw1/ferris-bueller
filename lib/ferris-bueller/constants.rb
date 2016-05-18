@@ -33,5 +33,16 @@ module FerrisBueller
     }
 
     SEVERITY_FIELD = SHOW_FIELDS.key('Severity')
+    HELP_TEXT = '
+/inc help - print this message
+/inc resolve <inc> - resolve incident number <inc>
+/inc close <inc> - close incident number <inc>
+/inc whoami - test to see if bueller can tell who you are
+/inc list - list incidents
+/inc summary - summary of incidents
+/inc show <inc> - show incident info for incident <inc>
+/inc comment <inc> <comment> - comment on incident <inc> with comment <comment>
+/inc open <severity> <summary> - open incident with severity of 1(high)-5(low) <severity>
+'
   end
 end

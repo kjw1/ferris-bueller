@@ -42,7 +42,8 @@ module FerrisBueller
         halt 403
       else
         content_type :json
-        reply = respond(params)
+        reply, post = respond(params)
+        settings.post_queue << post if post
         JSON.generate reply if reply
       end
     end

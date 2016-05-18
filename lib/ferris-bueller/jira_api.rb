@@ -30,13 +30,25 @@ module FerrisBueller
         event: 'sending Jira API request',
         path: path,
         data: data
-      res = JSON.parse http.request(req).body, symbolize_names: true
-      log.debug \
-        event: 'Jira API request returned',
-        path: path,
-        data: data,
-        response: res
-      res
+      raw_res = http.request(req).body
+      begin
+        return nil unless raw_res
+        res = JSON.parse raw_res, symbolize_names: true
+        log.debug \
+          event: 'Jira API request returned',
+          path: path,
+          data: data,
+          response: res
+        res
+      rescue => e
+        log.error \
+          event: 'exception parsing jira response',
+          response: raw_res.inspect,
+          exception: e.class,
+          message: e.message.inspect,
+          backtrace: e.backtrace
+        raise e
+      end
     end
 
   private

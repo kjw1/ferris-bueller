@@ -112,7 +112,10 @@ module FerrisBueller
       go_refresh_jira_users
       go_refresh_jira_members
       go_refresh_jira_incidents
-      start_your_day_off
+
+      queue = Queue.new
+      go_handle_postbacks queue
+      start_your_day_off queue
     end
 
   end

@@ -24,12 +24,16 @@ module FerrisBueller
         email: data[:user][:email]
       }
 
+      log.info \
+        event: 'matching user',
+        slack_user: slack_user
+
       jira_matches = store[:jira_users].values.map do |jira_user|
         distances = [ :name, :nick ].map do |k|
           compare slack_user[k], jira_user[k]
         end.compact
         mean_distance = 1.0 * distances.inject(:+) / distances.size
-        if mean_distance > threshold
+        if mean_distance > threshold or distances.max > 0.99
           { user: jira_user, distance: mean_distance}
         end
       end.compact
