@@ -142,10 +142,15 @@ file "pkg/thin-#{JSON_VERSION}-osx.tar.gz" do
 end
 
 def create_package target
-  package_name = "ferris-bueller-#{VERSION}-#{target}"
+  build = ENV['BUILD_NUMBER']
+  build = '1' if build.nil? || build.empty?
+  revision = '+' + `git rev-parse --short HEAD`.strip
+  revision = nil unless $?.exitstatus.zero?
+  version = "#{VERSION}-#{build}#{revision}".strip
+  package_name = "ferris-bueller-#{version}-#{target}"
   package_file = ::File.join Dir.pwd, 'pkg', "#{package_name}.tar.gz"
   package_dir = ::File.join Dir.pwd, 'pkg', package_name
-  output = ::File.join Dir.pwd, 'pkg', "ferris-bueller_#{VERSION}_amd64.deb"
+  output = ::File.join Dir.pwd, 'pkg', "ferris-bueller_#{version}_amd64.deb"
   sh "rm -rf #{package_dir}"
   sh "rm -rf #{output}" if target =~ /linux/
   sh "mkdir -p #{package_dir}/ferris-bueller"
